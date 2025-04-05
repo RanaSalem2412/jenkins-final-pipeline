@@ -1,69 +1,70 @@
 @Library('jenkins-shared-library') _
 
 pipeline {
-    agent { label 'docker-agent' }
-
+     agent { label 'docker-agent' }
+    
     environment {
-        DOCKER_IMAGE = "my-repo/my-app"
-        FULL_IMAGE = "${DOCKER_IMAGE}:${GIT_COMMIT}"
+        DOCKER_IMAGE = "ranasalem2412/my-app"
+        DOCKER_TAG = "latest"
     }
-
+    
     stages {
-        stage('Unit Test') {
+        stage('Checkout') {
             steps {
-                script {
-                    runUnitTest()
-                }
+                echo 'Cloning repository containing Dockerfile and source code...'
+                git 'https://github.com/IbrahimAdell/FinalProjectCode.git'
+            }
+        }
+
+        stage('Run Unit Tests') {
+            steps {
+                echo 'Running unit tests...'
+                runUnitTest()
             }
         }
 
         stage('Build JAR') {
             steps {
-                script {
-                    buildJar()
-                }
+                echo 'Building JAR file...'
+                buildJar()
             }
         }
 
-        stage('Build Image') {
+        stage('Build Docker Image') {
             steps {
-                script {
-                    buildImage()
-                }
+                echo 'Building Docker image...'
+                sh 'docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .'
             }
         }
 
-        stage('Push Image') {
+        stage('Push Docker Image') {
             steps {
-                script {
-                    pushImage()
-                }
+                echo 'Pushing Docker image to Docker Hub...'
+                pushImage()
             }
         }
 
-        stage('Delete Image Locally') {
+        stage('Delete Local Docker Image') {
             steps {
-                script {
-                    deleteImage()
-                }
+                echo 'Deleting local Docker image...'
+                deleteImage()
             }
         }
 
-        stage('Update Manifests') {
+        stage('Update Kubernetes Manifests') {
             steps {
-                script {
-                    updateManifests()
-                }
+                echo 'Updating Kubernetes manifests with new image...'
+                updateManifests()
             }
         }
 
-        stage('Push Manifests') {
+        stage('Push Kubernetes Manifests') {
             steps {
-                script {
-                    pushManifests()
-                }
+                echo 'Pushing Kubernetes manifests to Git...'
+                pushManifests()
             }
         }
     }
 }
+
 
